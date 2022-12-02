@@ -1,5 +1,5 @@
 package com.aishatmoshood.fashionblog.enums;
 
 public enum Role {
-    BLOGGER, USER
+    BLOGGER, REGISTERED_USER, ANONYMOUS_USER
 }

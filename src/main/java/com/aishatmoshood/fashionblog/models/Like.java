@@ -1,5 +1,6 @@
 package com.aishatmoshood.fashionblog.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,17 +13,15 @@ import lombok.*;
 
 @Entity
 @Table(schema = "public")
-public class Like extends BaseEntity{
-    private Long noOfLikes;
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH})
-    private Blogger blogger;
-
+public class Like extends BaseEntity {
+    private Long noOfLikes = 0L;
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH})
     private User user;
-
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH})
     private Post post;
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH})
     private Comment comment;
 }
