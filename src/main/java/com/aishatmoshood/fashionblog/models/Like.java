@@ -14,7 +14,6 @@ import lombok.*;
 @Entity
 @Table(schema = "public")
 public class Like extends BaseEntity {
-    private Long noOfLikes = 0L;
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.DETACH})
     private User user;

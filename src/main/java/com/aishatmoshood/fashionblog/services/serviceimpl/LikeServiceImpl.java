@@ -3,10 +3,8 @@ package com.aishatmoshood.fashionblog.services.serviceimpl;
 import com.aishatmoshood.fashionblog.enums.Role;
 import com.aishatmoshood.fashionblog.exceptions.NotFoundException;
 import com.aishatmoshood.fashionblog.exceptions.UnauthorizedException;
-import com.aishatmoshood.fashionblog.models.ApiResponse;
-import com.aishatmoshood.fashionblog.models.Like;
-import com.aishatmoshood.fashionblog.models.Post;
-import com.aishatmoshood.fashionblog.models.User;
+import com.aishatmoshood.fashionblog.models.*;
+import com.aishatmoshood.fashionblog.repositories.CommentRepository;
 import com.aishatmoshood.fashionblog.repositories.LikeRepository;
 import com.aishatmoshood.fashionblog.repositories.PostRepository;
 import com.aishatmoshood.fashionblog.services.LikeService;
@@ -26,28 +24,26 @@ public class LikeServiceImpl implements LikeService {
     private final HttpSession httpSession;
     private final LoggedInUser loggedInUser;
     private final PostRepository postRepository;
-    User signedInUser = loggedInUser.findLoggedInUser();
-
+    private final CommentRepository commentRepository;
 
     @Override
     public ApiResponse<Like> likeAPost(Long postId) throws UnauthorizedException {
         List<Like> likes = likeRepository.findLikesByPostId(postId);
 
         for(int i = 0; i < likes.size(); i++){
-            if(likes.get(i).getUser() == signedInUser){
+            if(likes.get(i).getUser() == loggedInUser.findLoggedInUser()){
                 throw new UnauthorizedException("You can't like this post more than once");
             }
         }
 
         Like like = new Like();
-        like.setNoOfLikes(like.getNoOfLikes() + 1L);
 
         if(httpSession.getAttribute("userId") == null){
             User user = new User(Role.ANONYMOUS_USER);
             like.setUser(user);
         }
         else {
-            like.setUser(signedInUser);
+            like.setUser(loggedInUser.findLoggedInUser());
         }
 
         Post post = postRepository.findById(postId).get();
@@ -58,24 +54,50 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public ApiResponse<String> unLikeAPost(Long commentId, Long postId) throws UnauthorizedException, NotFoundException {
+    public ApiResponse<String> unLikeAPost(Long postId) throws UnauthorizedException, NotFoundException {
         if(httpSession.getAttribute("userId") == null)
             throw new UnauthorizedException("Please log in to unlike a post");
+        
+        Like userLike =likeRepository.findLikeByPostIdAndUser(postId,loggedInUser.findLoggedInUser());
+        if(userLike == null)
+            throw new NotFoundException("You didn't like this post");
+        likeRepository.deleteById(userLike.getId());
+        return responseManager.success("Unliked Successfully");
+    }
 
-        Like like = likeRepository.findById(commentId).get();
+    @Override
+    public ApiResponse<Like> likeAComment(Long commentId) throws UnauthorizedException {
+        if(httpSession.getAttribute("userId") == null)
+            throw new UnauthorizedException("Please log in to like a comment");
 
-        List<Like> likes = likeRepository.findLikesByPostId(postId);
+        List<Like> likes = likeRepository.findLikesByCommentId(commentId);
         for(int i = 0; i < likes.size(); i++){
-            if(likes.get(i).getUser() == signedInUser){
-                like.setNoOfLikes(like.getNoOfLikes() - 1L);
-                Like userLike =likeRepository.findLikeByPostIdAndUser(postId,signedInUser);
-                likeRepository.deleteById(userLike.getId());
-            } else {
-                throw new NotFoundException("You didn't like this post");
+            if(likes.get(i).getUser() == loggedInUser.findLoggedInUser()){
+                throw new UnauthorizedException("You can't like this comment more than once");
             }
         }
 
-        return responseManager.success("Unliked Successfully");
+        Like like = new Like();
+        like.setUser(loggedInUser.findLoggedInUser());
+
+        Comment comment = commentRepository.findById(commentId).get();
+        like.setComment(comment);
+
+        likeRepository.save(like);
+        return responseManager.success(like);
+    }
+
+    @Override
+    public ApiResponse<String> unLikeAComment(Long commentId) throws UnauthorizedException, NotFoundException {
+        if(httpSession.getAttribute("userId") == null)
+            throw new UnauthorizedException("Please log in to unlike a comment");
+
+        Like userLike = likeRepository.findLikeByCommentIdAndUser(commentId,loggedInUser.findLoggedInUser());
+        if(userLike == null)
+            throw new NotFoundException("You didn't like this comment");
+        
+        likeRepository.deleteById(userLike.getId());
+        return responseManager.success("Comment unliked successfully");
     }
 
 }

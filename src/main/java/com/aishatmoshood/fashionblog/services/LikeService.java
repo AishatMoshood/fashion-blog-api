@@ -7,6 +7,8 @@ import com.aishatmoshood.fashionblog.models.Like;
 
 public interface LikeService {
     ApiResponse<Like> likeAPost(Long postId) throws UnauthorizedException;
+    ApiResponse<String> unLikeAPost(Long postId) throws UnauthorizedException, NotFoundException;
+    ApiResponse<Like> likeAComment(Long postId) throws UnauthorizedException;
 
-    ApiResponse<String> unLikeAPost(Long commentId, Long postId) throws UnauthorizedException, NotFoundException;
+    ApiResponse<String> unLikeAComment(Long commentId) throws UnauthorizedException, NotFoundException;
 }
