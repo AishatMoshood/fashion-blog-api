@@ -43,7 +43,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ApiResponse<Post> findPostById(Long postId) throws NotFoundException, UnauthorizedException {
+    public ApiResponse<Post> findPostById(Long postId) throws NotFoundException {
         if(postRepository.existsById(postId) == false)
             throw new NotFoundException("No such post");
         Post post = postRepository.findById(postId).get();
@@ -51,7 +51,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public ApiResponse<List<Post>> findAllPosts() throws NotFoundException, UnauthorizedException {
+    public ApiResponse<List<Post>> findAllPosts() throws NotFoundException {
         List<Post> allPosts = postRepository.findAll();
         if(allPosts.size() == 0)
             throw new NotFoundException("No posts yet");
